@@ -1,0 +1,153 @@
+# LLaMA-RAG Development Plan with Cursor IDE
+
+This plan outlines the steps to build an on-premises LLaMA-based Retrieval-Augmented Generation (RAG) application in Python using the Cursor IDE. The application will retrieve relevant documents from a local knowledge base and generate answers using a self-hosted LLaMA model, deployed on AWS EC2. The implementation will minimize third-party dependencies, focusing on core libraries (e.g., PyTorch, FAISS).
+
+## Objective
+Develop a LLaMA-RAG system that:
+- Uses a self-hosted LLaMA model (e.g., LLaMA 3 8B) for text generation.
+- Retrieves documents using a local vector store (FAISS) with an embedding model.
+- Runs on an AWS EC2 instance (e.g., g5.xlarge) for inference.
+- Leverages Cursor’s AI features for efficient coding and debugging.
+
+## Prerequisites
+- Cursor IDE installed (download from cursor.com).
+- AWS account with access to EC2 (g5.xlarge instance, NVIDIA A10G GPU, 24 GB VRAM).
+- LLaMA model weights (obtained from Meta AI, stored locally).
+- Python 3.10+ and virtual environment setup.
+- Basic familiarity with Python, PyTorch, and AWS.
+
+## Development Plan
+
+### 1. Set Up Development Environment
+- **Install Cursor IDE**: Download and configure Cursor for Python development.
+- **Create Project Directory**: Initialize a `llama-rag` directory with a virtual environment.
+- **Install Core Dependencies**:
+  - PyTorch (GPU-enabled for AWS deployment).
+  - FAISS (CPU for development, GPU for production).
+  - Sentence-Transformers (for embedding model, e.g., `all-MiniLM-L6-v2`).
+  - python-dotenv (for environment variables).
+- **Configure Cursor**:
+  - Create a `.cursor` file to set Python interpreter, linting (Pylint, Flake8), and Black formatting.
+  - Enable format-on-save and type checking for code quality.
+  - Set PYTHONPATH to include `src/` directory.
+- **Cursor Features**:
+  - Use AI code suggestions for autocompletion.
+  - Leverage Composer for generating module templates.
+  - Use inline edits (Ctrl+K) for refactoring.
+
+### 2. Prepare LLaMA Model
+- **Obtain LLaMA Weights**: Download LLaMA 3 8B weights from Meta AI (requires approval).
+- **Store Locally**: Save weights in a secure directory (e.g., `models/llama-3-8b`).
+- **Verify Compatibility**: Ensure weights are compatible with PyTorch for on-premises inference.
+- **Test Loading**: Use Cursor to write a script to load the model in PyTorch, confirming it fits in 24 GB VRAM (FP16).
+
+### 3. Design Project Structure
+- **Directory Layout**:
+  - `src/`: Core modules (retriever, generator, RAG pipeline, utilities).
+  - `data/documents/`: Sample text files for knowledge base.
+  - `models/`: LLaMA model weights.
+  - `main.py`: Entry point for testing.
+  - `.env`: Environment variables (e.g., model paths).
+- **Use Composer**: Generate initial module templates by describing functionality (e.g., “Create a FAISS retriever class”).
+- **Version Control**: Initialize a Git repository and commit changes using Cursor’s Git integration.
+
+### 4. Implement RAG Components
+- **Retriever**:
+  - Use FAISS to build a vector store for document embeddings.
+  - Implement a text splitter to chunk documents (e.g., 500-character chunks).
+  - Use Sentence-Transformers to embed documents and queries.
+  - Write a retrieval function to fetch top-k documents.
+- **Generator**:
+  - Load LLaMA 3 8B in PyTorch for on-premises inference.
+  - Implement a generation function with a prompt template (context + question).
+  - Optimize for GPU inference (e.g., FP16 precision).
+- **RAG Pipeline**:
+  - Combine retriever and generator to process queries.
+  - Format prompts to include retrieved context and user question.
+  - Handle errors (e.g., missing documents, model loading issues).
+- **Utilities**:
+  - Add functions for loading environment variables and logging.
+- **Cursor Tools**:
+  - Use Composer to generate boilerplate code for each component.
+  - Debug with Cursor’s inline suggestions (e.g., fix import errors).
+  - Refactor code using Ctrl+K (e.g., “Add type hints to this function”).
+
+### 5. Test Locally
+- **Prepare Sample Data**: Create text files in `data/documents/` (e.g., “France’s capital is Paris”).
+- **Run Tests**:
+  - Write a `main.py` script to test the RAG pipeline with sample queries.
+  - Use Cursor’s terminal to execute and monitor output.
+- **Debug**:
+  - Use Cursor’s error highlighting to identify issues (e.g., VRAM overflow).
+  - Ask Cursor to suggest fixes (e.g., “Optimize this function for memory”).
+- **Validate Output**: Ensure answers are accurate (e.g., “What is the capital of France?” → “Paris”).
+
+### 6. Deploy on AWS
+- **Launch EC2 Instance**:
+  - Choose `g5.xlarge` (1 GPU, 24 GB VRAM, ~$1/hr in us-east-1).
+  - Use NVIDIA Deep Learning AMI (Ubuntu 22.04) for pre-installed drivers.
+- **Configure Instance**:
+  - Attach a 100 GB gp3 EBS volume for model weights and data.
+  - Set up security groups (SSH on port 22, API on port 8000).
+- **Transfer Files**:
+  - Upload project directory and LLaMA weights to EC2 using SCP.
+- **Install Dependencies**:
+  - Replicate virtual environment on EC2.
+  - Install PyTorch with CUDA and FAISS-GPU.
+- **Run Application**:
+  - Execute `main.py` for testing.
+  - Optionally, create a FastAPI endpoint for production (minimal third-party dependency).
+- **Optimize Costs**:
+  - Use spot instances or stop instances when idle.
+  - Monitor costs with AWS Cost Explorer.
+
+### 7. Iterate and Refine
+- **Performance Tuning**:
+  - Optimize FAISS index for faster retrieval.
+  - Use model quantization (e.g., 4-bit) to reduce VRAM usage.
+- **Scalability**:
+  - Add batch processing for multiple queries.
+  - Consider multi-GPU setup (e.g., `g5.48xlarge`) for larger models.
+- **Cursor Iteration**:
+  - Use Composer to add new features (e.g., “Add logging to RAG pipeline”).
+  - Refactor code for readability using inline edits.
+- **Testing**:
+  - Expand test cases with diverse queries.
+  - Use Cursor’s suggestions to write unit tests.
+
+## AWS Instance Recommendation
+- **Instance**: g5.xlarge (1 NVIDIA A10G GPU, 24 GB VRAM, 4 vCPUs, 16 GB RAM).
+- **Storage**: 100 GB gp3 EBS volume (3000 IOPS).
+- **Use Case**: Suitable for LLaMA 3 8B inference with FP16 or quantized models.
+- **Cost**: ~$1/hr (spot instances for savings).
+- **Alternative**: g5.48xlarge (8 GPUs, 192 GB VRAM, ~$12/hr) for LLaMA 70B or high-throughput.
+
+## Key Considerations
+- **On-Premises LLaMA**:
+  - Store model weights securely on EC2.
+  - Avoid third-party APIs (e.g., Hugging Face inference endpoints).
+- **Minimal Dependencies**:
+  - Use PyTorch for model inference, FAISS for retrieval, and Sentence-Transformers for embeddings.
+  - Avoid frameworks like LangChain or vLLM for core logic.
+- **Cursor Efficiency**:
+  - Rely on AI suggestions and Composer to speed up coding.
+  - Use debugging tools to resolve issues quickly.
+- **Security**:
+  - Deploy in a VPC with restricted access.
+  - Encrypt EBS volumes for model weights.
+- **Cost Management**:
+  - Stop EC2 instances when not in use.
+  - Request quota increases for g5 instances if unavailable.
+
+## Next Steps
+1. Set up Cursor and project environment.
+2. Secure LLaMA model weights and test loading.
+3. Use Composer to scaffold retriever and generator modules.
+4. Test locally, then deploy to AWS EC2.
+5. Iterate based on performance and user feedback.
+
+## References
+- Cursor IDE: cursor.com
+- AWS EC2 g5 instances: aws.amazon.com/ec2/instance-types/g5
+- PyTorch: pytorch.org
+- FAISS: github.com/facebookresearch/faiss
