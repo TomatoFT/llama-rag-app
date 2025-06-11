@@ -29,19 +29,22 @@ class TextGenerator:
 
         self.llm = Llama(
             model_path=str(model_path),
-            n_ctx=4096,  # Context window size
+            n_ctx=2048,  # Reduced context window for faster processing
             n_threads=8,  # Number of CPU threads to use
             n_gpu_layers=-1,  # Use all GPU layers if available
-            verbose=True
+            n_batch=512,  # Increased batch size for faster processing
+            verbose=False  # Disable verbose output for better performance
         )
         
-    def generate(self, prompt: str, max_tokens: int = 256) -> str:
+    def generate(self, prompt: str, max_tokens: int = 128) -> str:  # Reduced max_tokens for faster responses
         """Generate text based on the prompt using the local LLaMA model."""
         output = self.llm(
             prompt,
             max_tokens=max_tokens,
             temperature=0.7,
             top_p=0.95,
+            top_k=40,  # Added top_k for better performance
+            repeat_penalty=1.1,  # Added repeat penalty to avoid repetitive text
             stop=["<s>", "[INST]", "[/INST]"],
             echo=False
         )

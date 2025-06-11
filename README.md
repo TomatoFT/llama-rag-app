@@ -18,7 +18,9 @@ A Retrieval-Augmented Generation (RAG) system using LLaMA and FAISS, with a mode
 
 ## Setup
 
-### Backend Setup
+### Option 1: Local Setup
+
+#### Backend Setup
 
 1. Create a virtual environment:
 ```bash
@@ -40,7 +42,7 @@ pip install -r requirements.txt
 python setup.py
 ```
 
-### Frontend Setup
+#### Frontend Setup
 
 1. Navigate to the project directory:
 ```bash
@@ -52,9 +54,30 @@ cd project
 npm install
 ```
 
+### Option 2: Docker Setup
+
+1. Ensure you have Docker and Docker Compose installed on your system.
+
+2. Prepare the LLaMA model:
+   - Convert your LLaMA model to GGML/GGUF format using [llama.cpp](https://github.com/ggerganov/llama.cpp)
+   - Place the converted model file (e.g., `ggml-model.bin`) in `models/llama-2-7b/`
+
+3. Create necessary directories:
+```bash
+mkdir -p models/llama-2-7b uploads
+touch models/llama-2-7b/.gitkeep uploads/.gitkeep
+```
+
+4. Build and start the containers:
+```bash
+docker-compose up --build
+```
+
 ## Running the Application
 
-### Backend
+### Local Development
+
+#### Backend
 
 1. Start the FastAPI server:
 ```bash
@@ -62,7 +85,7 @@ python api_main.py
 ```
 The API will be available at `http://localhost:8000`
 
-### Frontend
+#### Frontend
 
 1. In a new terminal, start the Vite development server:
 ```bash
@@ -70,6 +93,22 @@ cd project
 npm run dev
 ```
 The UI will be available at `http://localhost:5173`
+
+### Docker Deployment
+
+1. Start the application:
+```bash
+docker-compose up
+```
+
+2. Access the application:
+   - Frontend: `http://localhost:5173`
+   - Backend API: `http://localhost:8000`
+
+To stop the application:
+```bash
+docker-compose down
+```
 
 ## Usage
 
