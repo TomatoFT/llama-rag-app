@@ -3,8 +3,8 @@ version: '3.8'
 services:
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ./services/backend
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
@@ -12,16 +12,25 @@ services:
       - ./uploads:/app/uploads
     environment:
       - PYTHONUNBUFFERED=1
+      - MODEL_PATH=/app/models/llama-2-7b
     restart: unless-stopped
+    networks:
+      - rag-network
 
   frontend:
     build:
-      context: ./project
-      dockerfile: Dockerfile.frontend
+      context: ./services/web-app
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
     environment:
       - VITE_API_URL=http://localhost:8000
     depends_on:
       - backend
-    restart: unless-stopped 
+    restart: unless-stopped
+    networks:
+      - rag-network
+
+networks:
+  rag-network:
+    driver: bridge 
